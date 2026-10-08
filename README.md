@@ -32,10 +32,6 @@ To execute the tests, run:
 
 - python -m unittest
 
-If pytest is used instead:
-
-- pytest
-
 ## Video
 
 You can find a short explanation of the solution here:
