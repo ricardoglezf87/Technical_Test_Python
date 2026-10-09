@@ -112,6 +112,167 @@ Possible cases to consider include:
 
 It should also be confirmed whether the function can assume that start and end times will always be integer values, as currently defined in the function signature.
 
+
+# Decisions Made
+
+After reviewing the requirements again and analyzing different edge cases, it was identified that the initial function signature could cause relevant information to be lost.
+
+A solution that only returned one maximum occupancy period would not correctly represent situations where:
+
+- The maximum concurrency period continues for several consecutive hours.
+- There are several independent periods during the day with the same maximum occupancy level.
+
+For this reason, it was decided to modify the function signature to return a **list of maximum concurrency periods**, including the start and end time of each one.
+
+In this way, a result could have the following structure:
+
+`(5, [(9, 11), (18, 20)])`
+
+This means that the maximum concurrency is five simultaneous bookings and that it is reached both between 09:00 and 11:00 and between 18:00 and 20:00.
+
+This decision avoids analyzing only one occupancy peak when, in reality, there may be several critical periods throughout the day. From a business point of view, having all these periods available helps support decisions such as opening new rooms or temporarily increasing capacity.
+
+It was also decided to validate the input data instead of assuming that it will always be correct.
+
+The following conditions are considered invalid:
+
+- Same start and end time.
+- Negative values.
+- Time values outside the allowed range.
+- End time earlier than start time.
+- Null values.
+- Decimal values.
+- Characters or other data types different from integers.
+
+If an invalid booking is detected, the system will raise an error indicating which interval contains the problem.
+
+# Performance and Complexity Analysis
+
+A complexity analysis of the implemented algorithm has been performed.
+
+The solution has good performance because the time domain is limited to one complete day, divided into a maximum of 24 hourly time slots.
+
+## Time Complexity
+
+Let:
+
+- **n** = number of bookings (`len(bookings)`).
+- **h** = maximum number of hourly time slots that one booking can cover.
+
+In the current implementation:
+
+`h <= 24`
+
+The main part of the algorithm is:
+
+```python
+for st, ed in bookings:
+    if not ReservatioManager.is_valid(st, ed):
+        raise ValueError(...)
+
+    for i in range(st, ed):
+        occupancy[i] += 1
+```
+
+The outer loop processes the **n bookings**.
+
+The `is_valid()` function only performs comparison and type-checking operations, so its complexity is constant:
+
+`O(1)`
+
+The inner loop processes a maximum of 24 positions:
+
+```python
+for i in range(st, ed):
+```
+
+Therefore, the complexity of this part can be expressed as:
+
+`O(n × 24)`
+
+Because `24` is a constant:
+
+`O(n × 24) = O(n)`
+
+After that, the following operation is executed:
+
+```python
+oMax = max(occupancy)
+```
+
+The `occupancy` list always contains 24 elements, therefore:
+
+`O(24) = O(1)`
+
+Finally, the occupancy list is processed again to find and group the maximum concurrency periods:
+
+```python
+for i, n in enumerate(occupancy):
+```
+
+This loop also processes only 24 positions:
+
+`O(24) = O(1)`
+
+Therefore, the total time complexity is:
+
+`O(n) + O(1) + O(1)`
+
+Simplifying:
+
+**Time Complexity: `O(n)`**
+
+where **n** represents the number of received bookings.
+
+This means that the execution time grows linearly with the number of bookings.
+
+## Space Complexity
+
+The algorithm creates the following structure:
+
+```python
+occupancy = [0] * 24
+```
+
+This list always contains 24 positions, regardless of whether the system processes 1, 100, 1,000, or 1,000,000 bookings.
+
+Therefore:
+
+`O(24) = O(1)`
+
+The variable used to temporarily build a maximum occupancy period contains a maximum of two values:
+
+`O(1)`
+
+The list of maximum periods is also limited by the number of available time slots in the day.
+
+In the worst case, its size is still limited by a constant related to the 24 available hours:
+
+`O(24) = O(1)`
+
+Therefore:
+
+**Space Complexity: `O(1)`**
+
+This means that the additional memory usage does not increase based on the number of processed bookings.
+
+## Summary
+
+| Part of the algorithm | Complexity |
+|---|---|
+| `is_valid()` validation | `O(1)` |
+| Process bookings | `O(n)` |
+| Process the hours of each booking | `O(24) = O(1)` per booking |
+| `max(occupancy)` | `O(24) = O(1)` |
+| Find maximum periods | `O(24) = O(1)` |
+| **Total time** | **`O(n)`** |
+| **Additional space** | **`O(1)`** |
+
+The main advantage of this solution is that its performance mainly depends on the number of bookings and not on the number of possible combinations between them.
+
+Therefore, even with a high number of bookings, the algorithm keeps linear growth and constant memory usage.
+
+
 # Improvement Proposal
 
 As a possible functional and visual improvement, a graphical representation of occupancy throughout the day could be added.
@@ -143,10 +304,18 @@ This representation would make it easier to quickly detect high-demand or satura
 
 # Use of Artificial Intelligence
 
-Artificial Intelligence tools have been used as a support tool during the development and documentation process.
-The use of AI has been focused on the following activities:
+Artificial Intelligence tools were used as support during the development, analysis, and documentation process.
 
-- Massive testing: GPT was used to execute the implemented code with large sets of input data in order to test its behavior, identify possible edge cases, and verify the solution under a high number of bookings.
-- Translations: AI was used to translate documentation from Spanish to English.
+The use of AI was mainly focused on the following activities:
 
-The implementation and technical decisions were made and reviewed manually. 
+- **Load testing and edge cases:** GPT was used as support to generate and execute tests against the implemented code using large sets of input data. The objective was to check the behavior of the solution, detect possible edge cases, and verify its operation with a high number of bookings.
+
+- **Code improvement:** the results obtained during the tests helped identify possible improvements in the implementation, review specific edge cases, and increase the set of tests used to validate the solution.
+
+- **Complexity analysis:** AI was used as a support tool to review the time and space complexity analysis using Big O notation.
+
+- **Documentation:** AI was used to improve the wording, clarity, and structure of some sections of the documentation.
+
+- **Translations:** AI was used as support to translate the documentation from Spanish to English.
+
+The final implementation, functional decisions, and technical decisions were made and reviewed manually.
