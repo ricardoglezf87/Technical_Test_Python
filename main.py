@@ -1,37 +1,28 @@
 
 class ReservatioManager:
 
-    def max_occupancy(bookings: list[tuple[int, int]]) -> tuple[int, int | None, int | None]:
-        
-        if not bookings:
-            return (0, None, None)
-        
-        # Create an array of 24 numbers where each position is increased
-        # for every occupied hour during the day.
-        
-        occupancy = [0] * 24
-        
-        for st, ed in bookings:
-            for i in range(st,ed):
-                occupancy[i] += 1    
-                
-        max = 0 # Maximum concurrency value
-        max_start = 0 # Start of the maximum concurrency period
-        max_end = 0 # End of the maximum concurrency period
-        
-        # Iterate through the occupancy array and extract the period
-        # with maximum concurrency.
-        
-        for i,n in enumerate(occupancy):
-            if n > max:
-                max = n 
-                max_start = i
-                max_end = i + 1        
-        
-        return (max,max_start,max_end)    
+    # The following validations are performed:
+    #   - None of the values can be null.
+    #   - The value is integer.
+    #   - Time values greater than 24 are not allowed.
+    #   - Negative values are not allowed.
+    #   - The start time cannot be greater than the end time.
+    #   - The start and end times must be different.    
+    def is_valid(st: int, ed: int) -> bool:
+        if (st is None or
+            ed is None or
+            type(st) is not int or
+            type(ed) is not int or
+            st < 0 or 
+            ed < 0 or 
+            ed <= st or 
+            ed > 24):
+            return False
+        else:
+            return True
 
 
-    def max_multi_occupancy(bookings: list[tuple[int, int]]) -> tuple[int, list[tuple[int, int]] | None]:
+    def max_occupancy(bookings: list[tuple[int, int]]) -> tuple[int, list[tuple[int, int]] | None]:
             
             if not bookings:
                 return (0, None)
@@ -42,8 +33,13 @@ class ReservatioManager:
             occupancy = [0] * 24
             
             for st, ed in bookings:
-                for i in range(st,ed):
-                    occupancy[i] += 1                
+                if not ReservatioManager.is_valid(st,ed):
+                    raise ValueError(f"There is an invalid value in the list ({st}, {ed}).")
+                
+                                
+                for i in range(st,ed):                    
+                    occupancy[i] += 1                      
+                                      
             oMax = max(occupancy) # Maximum concurrency value       
             
             lmax_occupancy = [] # List of time ranges with maximum concurrency
@@ -76,5 +72,5 @@ if __name__ == "__main__":
     
     print(ReservatioManager.max_occupancy([(12,14),(11,17)]))              # -> (2, 12, 14)
     print(ReservatioManager.max_occupancy([(9, 12), (10, 13), (11, 14)]))  # -> (3, 11, 12)
-    print(ReservatioManager.max_occupancy([(9, 10), (10, 11), (11, 12)]))  # -> (1, 9, 10)
+    print(ReservatioManager.max_occupancy([(9, 10), (10, 11), (11, 12)]))  # -> (1, 9, 12)
     print(ReservatioManager.max_occupancy([]))                             # -> (0, None, None)    
