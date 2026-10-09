@@ -24,7 +24,7 @@ Example:
 
 Expected result:
 
-- (3, 11, 12)
+- (3, [(11, 12)])
 
 ## Run tests
 

@@ -70,7 +70,7 @@ class ReservatioManager:
 
 if __name__ == "__main__":
     
-    print(ReservatioManager.max_occupancy([(12,14),(11,17)]))              # -> (2, 12, 14)
-    print(ReservatioManager.max_occupancy([(9, 12), (10, 13), (11, 14)]))  # -> (3, 11, 12)
-    print(ReservatioManager.max_occupancy([(9, 10), (10, 11), (11, 12)]))  # -> (1, 9, 12)
-    print(ReservatioManager.max_occupancy([]))                             # -> (0, None, None)    
+    print(ReservatioManager.max_occupancy([(12,14),(11,17)]))              # -> (2, [(12, 14)])
+    print(ReservatioManager.max_occupancy([(9, 12), (10, 13), (11, 14)]))  # -> (3, [(11, 12)])
+    print(ReservatioManager.max_occupancy([(9, 10), (10, 11), (11, 12)]))  # -> (1, [(9, 12)])
+    print(ReservatioManager.max_occupancy([]))                             # -> (0, None)
